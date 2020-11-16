@@ -1,4 +1,5 @@
 package com.pxd.sink
+
 import java.sql.{Connection, DriverManager, PreparedStatement}
 
 import org.apache.flink.configuration.Configuration

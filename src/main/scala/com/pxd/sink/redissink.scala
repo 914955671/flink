@@ -1,5 +1,6 @@
 package com.pxd.sink
 
+import com.pxd.APITest
 import com.pxd.APITest.Test
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.connectors.redis.RedisSink
