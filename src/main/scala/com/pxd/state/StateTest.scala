@@ -3,10 +3,12 @@ package com.pxd.state
 import java.util
 
 import com.pxd.sink.Test
-import org.apache.flink.api.common.functions.{ReduceFunction, RichMapFunction}
+import org.apache.flink.api.common.functions.{ReduceFunction, RichFlatMapFunction, RichMapFunction}
 import org.apache.flink.api.common.state.{ListState, ListStateDescriptor, MapState, MapStateDescriptor, ReducingState, ReducingStateDescriptor, ValueState, ValueStateDescriptor}
 import org.apache.flink.configuration.Configuration
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction
 import org.apache.flink.streaming.api.scala._
+import org.apache.flink.util.Collector
 
 
 
@@ -23,13 +25,57 @@ object StateTest {
         Test(str(0),str(1).toInt,str(2).toDouble)
       }
     }
-
-
+      .keyBy(_.field_1)
+      .process(new MyProcessFunction)
+//      .flatMap(new MyRichFlatMapper())
 
 
     env.execute("State Test")
   }
 }
+
+class MyProcessFunction extends KeyedProcessFunction[String, Test, String]{
+
+  var keystate:ValueState[Test] = _
+
+
+  override def open(parameters: Configuration): Unit = {
+    keystate = getRuntimeContext.getState(new ValueStateDescriptor[Double]("State",classOf[Double]))
+    super.open(parameters)
+  }
+
+  override def processElement(i: Test, context: KeyedProcessFunction[String, Test, String]#Context, collector: Collector[String]): Unit = {
+    context.getCurrentKey
+    context.timestamp()
+    context.timerService().registerEventTimeTimer(context.timestamp() + 10000L)
+
+  }
+
+  override def onTimer(timestamp: Long, ctx: KeyedProcessFunction[String, Test, String]#OnTimerContext, out: Collector[String]): Unit = {
+
+    print("111111111111111111111")
+  }
+}
+
+
+//状态编程
+class MyRichFlatMapper() extends RichFlatMapFunction[Test,(String,Double,Double)]{
+
+  private val flatMapState: ValueState[Double] = getRuntimeContext.getState(new ValueStateDescriptor[Double]("FlatMap State", classOf[Double]))
+
+  override def flatMap(value: Test, out: Collector[(String, Double, Double)]): Unit = {
+    val last: Double = flatMapState.value()
+    val diff: Double = (value.field_3 - last).abs
+    if(diff > 10){
+      out.collect(value.field_1,last,value.field_3)
+    }
+
+    flatMapState.update(value.field_3)
+
+  }
+}
+
+
 
 class MyReduceFunction extends ReduceFunction[Test]{
   override def reduce(value1: Test, value2: Test): (String,Double) = {
