@@ -4,8 +4,12 @@ import java.util
 
 import com.pxd.sink.Test
 import org.apache.flink.api.common.functions.{ReduceFunction, RichFlatMapFunction, RichMapFunction}
+import org.apache.flink.api.common.restartstrategy.RestartStrategies
+import org.apache.flink.api.common.restartstrategy.RestartStrategies.RestartStrategyConfiguration
 import org.apache.flink.api.common.state.{ListState, ListStateDescriptor, MapState, MapStateDescriptor, ReducingState, ReducingStateDescriptor, ValueState, ValueStateDescriptor}
 import org.apache.flink.configuration.Configuration
+import org.apache.flink.runtime.state.filesystem.FsStateBackend
+import org.apache.flink.streaming.api.CheckpointingMode
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.util.Collector
@@ -17,6 +21,24 @@ object StateTest {
 
   def main(args: Array[String]): Unit = {
     val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
+    env.setStateBackend(new FsStateBackend("hdfs://test"))
+    //启用checkpoint，传入的参数为间隔时间
+    env.enableCheckpointing(1000)
+    //设置checkpoint参数
+    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE)
+    //checkpoint时间，设置一分钟。
+    env.getCheckpointConfig.setCheckpointTimeout(60000)
+    //最大同时存在的checkpoint数量
+    env.getCheckpointConfig.setMaxConcurrentCheckpoints(2)
+    //最小的间隔时间
+    env.getCheckpointConfig.setMinPauseBetweenCheckpoints(100)
+    //是否更倾向于用checkpoint做故障恢复
+    env.getCheckpointConfig.setPreferCheckpointForRecovery(false)
+    //容忍checkpoint失败次数
+    env.getCheckpointConfig.setTolerableCheckpointFailureNumber(1)
+    //配置重启策略
+    env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3,1000))
+
     env.setParallelism(1)
     val ds: DataStream[String] = env.socketTextStream("localhost", 7777)
     val dsTest: DataStream[Test] = ds.map {
