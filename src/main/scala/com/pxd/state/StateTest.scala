@@ -48,7 +48,7 @@ object StateTest {
       }
     }
       .keyBy(_.field_1)
-      .process(new MyProcessFunction)
+    //     .process(new MyProcessFunction)
 //      .flatMap(new MyRichFlatMapper())
 
 
@@ -62,7 +62,7 @@ class MyProcessFunction extends KeyedProcessFunction[String, Test, String]{
 
 
   override def open(parameters: Configuration): Unit = {
-    keystate = getRuntimeContext.getState(new ValueStateDescriptor[Double]("State",classOf[Double]))
+//    keystate = getRuntimeContext.getState(new ValueStateDescriptor[Double]("State",classOf[Double]))
     super.open(parameters)
   }
 
@@ -99,18 +99,19 @@ class MyRichFlatMapper() extends RichFlatMapFunction[Test,(String,Double,Double)
 
 
 
-class MyReduceFunction extends ReduceFunction[Test]{
-  override def reduce(value1: Test, value2: Test): (String,Double) = {
-    (value1.field_1,value1.field_3 + value2.field_3)
-  }
-}
+//class MyReduceFunction extends ReduceFunction[Test]{
+//  override def reduce(value1: Test, value2: Test): (String,Double) = {
+////    (value1.field_1,value1.field_3 + value2.field_3)
+//    ("",12.3)
+//  }
+//}
 
 class MyRichMapper extends RichMapFunction[Test,String]{
   //状态
   var lastTemp:ValueState[Double] = _
   lazy val listState: ListState[Int] = getRuntimeContext.getListState(new ListStateDescriptor[Int]("liststate", classOf[Int]))
   lazy val mapState: MapState[String, Double] = getRuntimeContext.getMapState(new MapStateDescriptor[String, Double]("", classOf[String], classOf[Double]))
-  lazy val reduceState: ReducingState[Test] = getRuntimeContext.getReducingState(new ReducingStateDescriptor[Test]("reduceState", new MyReduceFunction, classOf[Test]))
+//  lazy val reduceState: ReducingState[Test] = getRuntimeContext.getReducingState(new ReducingStateDescriptor[Test]("reduceState", new MyReduceFunction, classOf[Test]))
 
 
   override def open(parameters: Configuration): Unit = {

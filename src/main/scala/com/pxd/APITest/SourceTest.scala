@@ -21,8 +21,8 @@ object SourceTest {
 //    properties.setProperty("bootstrap.servers","localhost:9092")
 //    properties.setProperty("zookeeper.connect","localhost:2181")
 //    val ds: DataStream[String] = env.addSource(new FlinkKafkaConsumer[String]("test", new SimpleStringSchema(), properties))
-    val ds: DataStream[String] = env.fromCollection(List("a b c","c b c","a c a","b s b"))
-    ds.flatMap(_.split(" ")).map((_,1)).filter(_._1 != "a").keyBy(0).sum(1).print()
+//    val ds: DataStream[String] = env.fromCollection(List("a b c","c b c","a c a","b s b"))
+//    ds.flatMap(_.split(" ")).map((_,1)).filter(_._1 != "a").keyBy(0).sum(1).print()
 //    ds.print()
     env.execute()
   }
