@@ -59,10 +59,10 @@ object T2 {
 
     //3.2 从kafka中读取数据
     tableEnv.connect(new Kafka()
-      .version("2.6.0")
+      .version("universal")
       .topic("test")
       .property("zookeeper.connect","localhost:2181")
-      .property("boostrap.servers","localhost:9092")
+      .property("bootstrap.servers","localhost:9092")
     ).withFormat(new Csv())
       .withSchema(new Schema()
         .field("field_1",DataTypes.STRING())
